@@ -37,28 +37,20 @@ class Epoll
     const ENOSPC = 28;
     const EPERM  = 1;
 
+
     public function __construct()
     {
         if (self::$ffi === null) {
-            self::$ffi =  FFI::cdef('typedef union epoll_data {
-            void *ptr;int fd;
-            uint32_t u32;
-            uint64_t u64;
-            } epoll_data_t;
-            struct epoll_event {
-            uint32_t events; /* Epoll events */
-            epoll_data_t data; /* User data variable */
-            };
-            int epoll_create(int size);
-            int epoll_create1 (int __flags)
-            int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
-            int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
-            int epoll_pwait(int epfd, struct epoll_event *events,int maxevents, int timeout,const sigset_t *sigmask);
-            int errno;
-            char *strerror(int errno);
-            ');
+            include __DIR__ . '/EpollEvent.php';
+            self::$ffi =  FFI::cdef(file_get_contents(__DIR__ . '/php.h'));
         }
     }
+
+    /**
+     * open an epoll file descriptor
+     * 
+     *  @param int $flags
+     */
     public function create(int $flags)
     {
         if ($flags === 0 || $flags === self::EPOLL_CLOEXEC) {
@@ -68,34 +60,74 @@ class Epoll
         } else {
             throw new InvalidArgumentException('Epoll::create() of paramter 1 must be greater than 0');
         }
+        if ($this->epfd < 0) {
+            throw new ErrorException('create epoll file descriptor error');
+        }
     }
 
-    public function lastErrno()
+    /**
+     * get last error code
+     * 
+     * @return int
+     */
+    public function lastErrno(): int
     {
         return self::$ffi->errno;
     }
 
-    public function lastError()
+    /**
+     * get last error message
+     * 
+     * @return string
+     */
+    public function lastError(): string
     {
         return FFI::string(self::$ffi->strerror(self::$ffi->errno));
     }
 
-
-    public function ffi()
+    /**
+     * get current ffi instance of Epoll
+     * 
+     * @return FFI
+     */
+    public function ffi(): FFI
     {
         return self::$ffi;
     }
 
-    public function initEvents()
+    /**
+     * init epoll events
+     * 
+     * @param int $num
+     * @return EpollEvent
+     */
+    public function initEvents(int $num = 1): EpollEvent
     {
-        return new EpollEvent($this);
+        return new EpollEvent($this, $num);
     }
 
-    public function ctl(int $op, int $fd, EpollEvent $events, array $data): int
+    /**
+     * control interface for an epoll file descriptor
+     * 
+     * @param int $op
+     * @param int $fd
+     * @param EpollEvent $events
+     * @return int
+     */
+    public function ctl(int $op, int $fd, EpollEvent $events): int
     {
-        return self::$ffi->epoll_ctl($this->epfd, $op, $fd, $events->getEvents());
+        return self::$ffi->epoll_ctl($this->epfd, $op, $fd, FFI::addr($events->getEvents()));
     }
 
+    /**
+     * wait for an I/O event on an epoll file descriptor
+     * 
+     * @param EpollEvent $event
+     * @param int $maxevents
+     * @param int $timeout
+     * @param int sigmask
+     * @return int
+     */
     public function wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int
     {
         if ($maxevents <= 0) {
@@ -106,5 +138,37 @@ class Epoll
         } else {
             return self::$ffi->epoll_pwait($this->epfd, $event->getEvents(), $maxevents, $timeout, $sigmask);
         }
+    }
+
+    /**
+     * get file descriptor from php resource
+     * 
+     * @param resource $resource    PHP resource handle, e.g. fopen(),stream_socket_server() return value
+     * @return FFI\CData
+     */
+    public function getFd($resource): FFI\CData
+    {
+        if (!is_resource($resource)) {
+            throw new TypeError('Epoll::getFd() of paramter 1 must be resource');
+        }
+        $arr = self::$ffi->zend_array_dup(self::$ffi->zend_rebuild_symbol_table());
+        $stream  = self::$ffi->cast('php_stream', $arr->arData->val->value->res->ptr);
+        return $stream->abstract;
+    }
+
+    /**
+     * get id from file descriptor of php resource
+     * 
+     * @param mix $file     it's Epoll::getFd() return value or php resource
+     * @return int
+     */
+    public function getFdno($file): int
+    {
+        if (is_resource($file)) {
+            $fd = $this->getFd($file);
+        } else {
+            $fd = $file;
+        }
+        return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
     }
 }
