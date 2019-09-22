@@ -103,6 +103,9 @@ class Epoll
      */
     public function initEvents(int $num = 1): EpollEvent
     {
+        if ($num < 1) {
+            throw new InvalidArgumentException('Epoll::initEvents() of paramter 1 must be greater than 0');
+        }
         return new EpollEvent($this, $num);
     }
 

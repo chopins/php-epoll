@@ -31,15 +31,15 @@ PHP bindings to the linux epoll API.
 
   get last error message
 * `Epoll::ffi(): FFI`
-* `Epoll::initEvents(): EpollEvent`
-* `EpollEvent::__construct(Epoll $epoll)`
-* `EpollEvent::setEvent($event)`
+* `Epoll::initEvents($num): EpollEvent`
+* `EpollEvent::__construct(Epoll $epoll,$num)`
+* `EpollEvent::setEvent($event, $idx)`
 
   set Epoll events
-* `EpollEvent::setData($data)`
+* `EpollEvent::setData($data, $idx)`
   
   set user data variable
-* `EpollEvent::getEvents(): FFI\CData`
+* `EpollEvent::getEvents($idx): FFI\CData`
   
 ## Simple Example
 

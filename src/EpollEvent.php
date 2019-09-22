@@ -35,8 +35,8 @@ class EpollEvent implements \ArrayAccess
     public function setEvent(int $event, int $idx = 0)
     {
         if ($this->num > 1) {
-            if ($idx < 1) {
-                throw new InvalidArgumentException('EpollEvent::setEvent() of paramter 2 muset be greater than 0');
+            if ($idx < 0) {
+                throw new InvalidArgumentException('EpollEvent::setEvent() of paramter 2 must be >= 0');
             }
             $this->events[$idx]->events = $event;
         } else {
@@ -50,12 +50,12 @@ class EpollEvent implements \ArrayAccess
      * @param array $data
      * @param int $idx
      */
-    public function setData(array $data, $idx = 1)
+    public function setData(array $data, $idx = 0)
     {
         $keys = ['ptr', 'fd', 'u32', 'u64'];
         if ($this->num > 1) {
-            if ($idx < 1) {
-                throw new InvalidArgumentException('EpollEvent::setData() of paramter 2 muset be greater than 0');
+            if ($idx < 0) {
+                throw new InvalidArgumentException('EpollEvent::setData() of paramter 2 must be >= 0');
             }
             $ev = $this->events[$idx];
         } else {
@@ -72,10 +72,14 @@ class EpollEvent implements \ArrayAccess
     /**
      * get epoll struct 
      * 
+     * @param int $idx
      * @return FFI\CData
      */
-    public function getEvents(): FFI\CData
+    public function getEvents($idx = null): FFI\CData
     {
+        if ($this->num > 1 && $idx >= 0 && $idx !== null) {
+            return $this->events[$idx];
+        }
         return $this->events;
     }
 
