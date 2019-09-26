@@ -37,6 +37,8 @@ class Epoll
     const ENOSPC = 28;
     const EPERM  = 1;
 
+    const RES_TYPE_FILE = 1;
+    const RES_TYPE_NET  = 2;
 
     public function __construct()
     {
@@ -48,7 +50,7 @@ class Epoll
 
     /**
      * open an epoll file descriptor
-     * 
+     *
      *  @param int $flags
      */
     public function create(int $flags)
@@ -67,7 +69,7 @@ class Epoll
 
     /**
      * get last error code
-     * 
+     *
      * @return int
      */
     public function lastErrno(): int
@@ -77,7 +79,7 @@ class Epoll
 
     /**
      * get last error message
-     * 
+     *
      * @return string
      */
     public function lastError(): string
@@ -87,7 +89,7 @@ class Epoll
 
     /**
      * get current ffi instance of Epoll
-     * 
+     *
      * @return FFI
      */
     public function ffi(): FFI
@@ -97,7 +99,7 @@ class Epoll
 
     /**
      * init epoll events
-     * 
+     *
      * @param int $num
      * @return EpollEvent
      */
@@ -111,7 +113,7 @@ class Epoll
 
     /**
      * control interface for an epoll file descriptor
-     * 
+     *
      * @param int $op
      * @param int $fd
      * @param EpollEvent $events
@@ -124,7 +126,7 @@ class Epoll
 
     /**
      * wait for an I/O event on an epoll file descriptor
-     * 
+     *
      * @param EpollEvent $event
      * @param int $maxevents
      * @param int $timeout
@@ -145,18 +147,22 @@ class Epoll
 
     /**
      * get id from file descriptor of php resource
-     * 
-     * @param mix $resource     it's php resource
+     *
+     * @param mix $file     it's Epoll::getFd() return value or php resource
      * @return int
      */
-    public function getFdno($resource): int
+    public function getFdno($resource, $type): int
     {
         if (!is_resource($resource)) {
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
         $arr = self::$ffi->zend_array_dup(self::$ffi->zend_rebuild_symbol_table());
         $stream  = self::$ffi->cast('php_stream', $arr->arData->val->value->res->ptr);
-        $stdio =  self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
-        return $stdio->fd;
+        $fd = $stream->abstract;
+        if($type === self::RES_TYPE_FILE ) {
+            return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
+        } elseif($type === self::RES_TYPE_NET) {
+            return self::$ffi->cast('php_netstream_data_t', $fd)->socket;
+        }
     }
 }

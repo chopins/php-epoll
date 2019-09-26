@@ -15,6 +15,7 @@ typedef struct _zend_ast        zend_ast;
 typedef struct _zend_class_entry     zend_class_entry;
 typedef union  _zend_function        zend_function;
 typedef struct _zend_array HashTable;
+typedef struct _php_netstream_data_t php_netstream_data_t;
 typedef void (*dtor_func_t)(zval *pDest);
 
 typedef struct _php_stream php_stream;
@@ -201,6 +202,14 @@ typedef struct {
 	void * sb;
 } php_stdio_stream_data;
 
+struct _php_netstream_data_t	{
+	int socket;
+	char is_blocked;
+	void* timeout;
+	char timeout_event;
+	size_t ownsize;
+} ;
+
 typedef union epoll_data {
     void *ptr;
     int fd;
@@ -208,7 +217,7 @@ typedef union epoll_data {
     uint64_t u64;
 } epoll_data_t;
 
-typedef struct epoll_event {
+typedef struct _epoll_event {
     uint32_t events; /* Epoll events */
     epoll_data_t data; /* User data variable */
 } epoll_event;

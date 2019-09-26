@@ -1,57 +1,5 @@
-# php-epoll
-PHP bindings to the linux epoll API.
-
-### Requirements
-* PHP >= 7.4
-* PHP FFI extension available
-* Linux > 2.6
-
-## Reference
-
-* `Epoll::__construct()`
-* `Epoll::create(int $flags)`
-
-  open an epoll file descriptor
-* `Epoll::ctl(int $op, int $fd, EpollEvent $events): int`
-
-  control interface for an epoll file descriptor
-* `Epoll::wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int`
-
-  wait for an I/O event on an epoll file descriptor
-* `Epoll::getFdno(mixed $file): int`
-
-  get id from file descriptor of php resource
-* `Epoll::lastErrno(): int`
-
-  get last error code
-* `Epoll::lastError(): string`
-
-  get last error message
-* `Epoll::ffi(): FFI`
-* `Epoll::initEvents($num): EpollEvent`
-* `EpollEvent::__construct(Epoll $epoll,$num)`
-* `EpollEvent::setEvent($event, $idx)`
-
-  set Epoll events
-* `EpollEvent::setData($data, $idx)`
-
-  set user data variable
-* `EpollEvent::getEvents($idx): FFI\CData`
-
-## Simple Example
-
-php resource to file descriptor
-```php
-$epoll = new Epoll();
-$fp = fopen(__FILE__, 'rb');
-$fdno = $epoll->getFdno($fp, Epoll::RES_TYPE_FILE);
-$fdfp = fopen("php://fd/$fdno", 'rb');
-echo fread($fdfp, 1024);
-```
-
-epoll example from `man epoll`
-
-```php
+<?php
+include dirname(__DIR__) .'/src/Epoll.php';
 const MAX_EVENTS = 10;
 const EXIT_FAILURE = 1;
 
@@ -103,4 +51,3 @@ for (;;) {
         }
     }
 }
-```
