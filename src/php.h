@@ -202,15 +202,16 @@ typedef struct {
 } php_stdio_stream_data;
 
 typedef union epoll_data {
-    void *ptr;int fd;
+    void *ptr;
+    int fd;
     uint32_t u32;
     uint64_t u64;
 } epoll_data_t;
 
-struct epoll_event {
+typedef struct epoll_event {
     uint32_t events; /* Epoll events */
     epoll_data_t data; /* User data variable */
-};
+} epoll_event;
 int epoll_create(int size);
 int epoll_create1 (int __flags);
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);

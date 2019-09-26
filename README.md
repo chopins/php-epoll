@@ -18,9 +18,6 @@ PHP bindings to the linux epoll API.
 * `Epoll::wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int`
 
   wait for an I/O event on an epoll file descriptor
-* `Epoll::getFd($resource): FFI\CData`
-  
-  get file descriptor from php resource or php resource
 * `Epoll::getFdno(mixed $file): int`
 
   get id from file descriptor of php resource
@@ -47,8 +44,8 @@ php resource to file descriptor
 ```php
 $epoll = new Epoll();
 $fp = fopen(__FILE__, 'rb');
-$fd = $epoll->getFd($fp);
-$fdno = $epoll->getFdno($fd);
+
+$fdno = $epoll->getFdno($fp);
 $fdfp = fopen("php://fd/$fdno", 'rb');
 echo fread($fdfp, 1024);
 ```

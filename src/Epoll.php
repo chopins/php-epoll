@@ -144,34 +144,19 @@ class Epoll
     }
 
     /**
-     * get file descriptor from php resource
+     * get id from file descriptor of php resource
      * 
-     * @param resource $resource    PHP resource handle, e.g. fopen(),stream_socket_server() return value
-     * @return FFI\CData
+     * @param mix $resource     it's php resource
+     * @return int
      */
-    public function getFd($resource): FFI\CData
+    public function getFdno($resource): int
     {
         if (!is_resource($resource)) {
-            throw new TypeError('Epoll::getFd() of paramter 1 must be resource');
+            throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
         $arr = self::$ffi->zend_array_dup(self::$ffi->zend_rebuild_symbol_table());
         $stream  = self::$ffi->cast('php_stream', $arr->arData->val->value->res->ptr);
-        return $stream->abstract;
-    }
-
-    /**
-     * get id from file descriptor of php resource
-     * 
-     * @param mix $file     it's Epoll::getFd() return value or php resource
-     * @return int
-     */
-    public function getFdno($file): int
-    {
-        if (is_resource($file)) {
-            $fd = $this->getFd($file);
-        } else {
-            $fd = $file;
-        }
-        return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
+        $stdio =  self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
+        return $stdio->fd;
     }
 }
