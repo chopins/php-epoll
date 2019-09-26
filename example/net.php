@@ -4,8 +4,8 @@ const MAX_EVENTS = 10;
 const EXIT_FAILURE = 1;
 
 $epoll = new Epoll();
-$ev = $epoll->initEvents(MAX_EVENTS);
-$events = $epoll->initEvents();
+$ev = $epoll->initEvents();
+$events = $epoll->initEvents(MAX_EVENTS);
 $stream = stream_socket_server("tcp://0.0.0.0:8000", $errno, $errstr);
 $listen_sock = $epoll->getFdno($stream, Epoll::RES_TYPE_NET);
 

@@ -217,7 +217,7 @@ typedef union epoll_data {
     uint64_t u64;
 } epoll_data_t;
 
-typedef struct _epoll_event {
+typedef struct epoll_event {
     uint32_t events; /* Epoll events */
     epoll_data_t data; /* User data variable */
 } epoll_event;
