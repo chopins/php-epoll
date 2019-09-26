@@ -32,10 +32,5 @@
         "psr-4": {
             "\\": "src/"
         }
-    },
-    "config": {
-        "platform": {
-            "os": "linux"
-        }
     }
 }
