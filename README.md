@@ -18,7 +18,7 @@ PHP bindings to the linux epoll API.
 * `Epoll::wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int`
 
   wait for an I/O event on an epoll file descriptor
-* `Epoll::getFdno(mixed $file): int`
+* `Epoll::getFdno(resource $file, int $type): int`
 
   get id from file descriptor of php resource
 * `Epoll::lastErrno(): int`

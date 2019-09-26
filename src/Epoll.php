@@ -149,6 +149,9 @@ class Epoll
      * get id from file descriptor of php resource
      *
      * @param mix $file     it's Epoll::getFd() return value or php resource
+     * @param int $type     resource type, 
+     *                     value is Epoll::RES_TYPE_FILE: open file resource, like fopen,STDOUT
+     *                       Epoll::RES_TYPE_NET: open network resource, like stream_socket_server
      * @return int
      */
     public function getFdno($resource, $type): int
@@ -163,6 +166,8 @@ class Epoll
             return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
         } elseif($type === self::RES_TYPE_NET) {
             return self::$ffi->cast('php_netstream_data_t', $fd)->socket;
+        } else {
+            return 0;
         }
     }
 }
