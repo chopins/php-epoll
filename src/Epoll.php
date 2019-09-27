@@ -152,7 +152,7 @@ class Epoll
      * @param int $type     resource type, 
      *                     value is Epoll::RES_TYPE_FILE: open file resource, like fopen,STDOUT
      *                       Epoll::RES_TYPE_NET: open network resource, like stream_socket_server
-     * @return int
+     * @return int	if error return -1, otherwise return greater then 0
      */
     public function getFdno($resource, $type): int
     {
@@ -167,7 +167,7 @@ class Epoll
         } elseif($type === self::RES_TYPE_NET) {
             return self::$ffi->cast('php_netstream_data_t', $fd)->socket;
         } else {
-            return 0;
+            return -1;
         }
     }
 }
