@@ -148,7 +148,7 @@ class Epoll
     /**
      * get id from file descriptor of php resource
      *
-     * @param mix $file     it's Epoll::getFd() return value or php resource
+     * @param mix $resource     it's Epoll::getFd() return value or php resource
      * @param int $type     resource type, 
      *                     value is Epoll::RES_TYPE_FILE: open file resource, like fopen,STDOUT
      *                       Epoll::RES_TYPE_NET: open network resource, like stream_socket_server
