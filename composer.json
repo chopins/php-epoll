@@ -25,7 +25,8 @@
     },
     "require": {
         "php": ">=7.4.0",
-        "ext-ffi": "*"
+        "ext-ffi": "*",
+        "toknot/php-capi" : "@dev"
     },
     "autoload": {
         "psr-4": {

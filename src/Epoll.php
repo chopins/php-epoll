@@ -8,7 +8,6 @@
  * @link       https://github.com/chopins/php-gtk
  * @version    0.1
  */
-
 class Epoll
 {
 
@@ -168,8 +167,9 @@ class Epoll
         if(!is_resource($resource)) {
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
-        $arr = self::$ffi->zend_array_dup(self::$ffi->zend_rebuild_symbol_table());
-        $stream = self::$ffi->cast('php_stream', $arr->arData->val->value->res->ptr);
+
+        $api = new PhpApi;
+        $stream = $api->phpVar($resource)->ptr;
         $fd = $stream->abstract;
         if($type === self::RES_TYPE_FILE) {
             return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
