@@ -1,9 +1,20 @@
 <?php
 
+/**
+ * php-gtk (http://toknot.com)
+ *
+ * @copyright  Copyright (c) 2019 Szopen Xiao (Toknot.com)
+ * @license    http://toknot.com/LICENSE.txt New BSD License
+ * @link       https://github.com/chopins/php-gtk
+ * @version    0.1
+ */
+
 class Epoll
 {
+
     static private $ffi = null;
     private $epfd = 0;
+
     const EPOLL_CTL_ADD = 1;
     const EPOLL_CTL_MOD = 2;
     const EPOLL_CTL_DEL = 3;
@@ -23,7 +34,6 @@ class Epoll
     const EPOLLONESHOT = 1 << 30;
     const EPOLLET = 1 << 3;
     const EPOLL_CLOEXEC = 02000000;
-
     const EINVAL = 22;
     const EMFILE = 24;
     const ENOMEM = 12;
@@ -35,16 +45,15 @@ class Epoll
     const ELOOP = 40;
     const ENOENT = 2;
     const ENOSPC = 28;
-    const EPERM  = 1;
-
+    const EPERM = 1;
     const RES_TYPE_FILE = 1;
-    const RES_TYPE_NET  = 2;
+    const RES_TYPE_NET = 2;
 
     public function __construct()
     {
-        if (self::$ffi === null) {
+        if(self::$ffi === null) {
             include __DIR__ . '/EpollEvent.php';
-            self::$ffi =  FFI::cdef(file_get_contents(__DIR__ . '/php.h'));
+            self::$ffi = FFI::cdef(file_get_contents(__DIR__ . '/php.h'));
         }
     }
 
@@ -55,14 +64,14 @@ class Epoll
      */
     public function create(int $flags)
     {
-        if ($flags === 0 || $flags === self::EPOLL_CLOEXEC) {
+        if($flags === 0 || $flags === self::EPOLL_CLOEXEC) {
             $this->epfd = self::$ffi->epoll_create1($flags);
-        } else if ($flags > 0) {
+        } else if($flags > 0) {
             $this->epfd = self::$ffi->epoll_create($flags);
         } else {
             throw new InvalidArgumentException('Epoll::create() of paramter 1 must be greater than 0');
         }
-        if ($this->epfd < 0) {
+        if($this->epfd < 0) {
             throw new ErrorException('create epoll file descriptor error');
         }
     }
@@ -105,7 +114,7 @@ class Epoll
      */
     public function initEvents(int $num = 1): EpollEvent
     {
-        if ($num < 1) {
+        if($num < 1) {
             throw new InvalidArgumentException('Epoll::initEvents() of paramter 1 must be greater than 0');
         }
         return new EpollEvent($this, $num);
@@ -135,10 +144,10 @@ class Epoll
      */
     public function wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int
     {
-        if ($maxevents <= 0) {
+        if($maxevents <= 0) {
             throw new InvalidArgumentException('Epoll::wait() of paramter 2 must be greater than 0');
         }
-        if ($sigmask === null) {
+        if($sigmask === null) {
             return self::$ffi->epoll_wait($this->epfd, $event->getEvents(), $maxevents, $timeout);
         } else {
             return self::$ffi->epoll_pwait($this->epfd, $event->getEvents(), $maxevents, $timeout, $sigmask);
@@ -156,13 +165,13 @@ class Epoll
      */
     public function getFdno($resource, $type): int
     {
-        if (!is_resource($resource)) {
+        if(!is_resource($resource)) {
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
         $arr = self::$ffi->zend_array_dup(self::$ffi->zend_rebuild_symbol_table());
-        $stream  = self::$ffi->cast('php_stream', $arr->arData->val->value->res->ptr);
+        $stream = self::$ffi->cast('php_stream', $arr->arData->val->value->res->ptr);
         $fd = $stream->abstract;
-        if($type === self::RES_TYPE_FILE ) {
+        if($type === self::RES_TYPE_FILE) {
             return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
         } elseif($type === self::RES_TYPE_NET) {
             return self::$ffi->cast('php_netstream_data_t', $fd)->socket;
@@ -170,4 +179,5 @@ class Epoll
             return -1;
         }
     }
+
 }
