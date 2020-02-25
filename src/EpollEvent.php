@@ -8,6 +8,13 @@
  * @link       https://github.com/chopins/php-gtk
  * @version    0.1
  */
+
+namespace Toknot;
+
+use Toknot\Epoll;
+use InvalidArgumentException;
+use TypeError;
+
 class EpollEvent implements \ArrayAccess
 {
 

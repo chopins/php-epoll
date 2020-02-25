@@ -8,6 +8,15 @@
  * @link       https://github.com/chopins/php-gtk
  * @version    0.1
  */
+
+namespace Toknot;
+
+use FFI;
+use InvalidArgumentException;
+use ErrorException;
+use TypeError;
+use Toknot\EpollEvent;
+
 class Epoll
 {
 
