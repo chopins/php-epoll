@@ -1,7 +1,7 @@
 <?php
 
 /**
- * php-gtk (http://toknot.com)
+ * php-epoll (http://toknot.com)
  *
  * @copyright  Copyright (c) 2019 Szopen Xiao (Toknot.com)
  * @license    http://toknot.com/LICENSE.txt New BSD License
