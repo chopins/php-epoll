@@ -16,7 +16,7 @@ use InvalidArgumentException;
 use ErrorException;
 use TypeError;
 use Toknot\EpollEvent;
-use Toknot\PhpApi;
+use Toknot\FFIExtend;
 
 class Epoll
 {
@@ -178,7 +178,7 @@ class Epoll
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
 
-        $api = new PhpApi;
+        $api = new FFIExtend;
         $stream = $api->phpVar($resource)->ptr;
         $fd = self::$ffi->cast('php_stream', $stream)->abstract;
         if($type === self::RES_TYPE_FILE) {
