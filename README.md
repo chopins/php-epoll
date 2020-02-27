@@ -5,6 +5,14 @@ PHP bindings to the linux epoll API.
 * PHP >= 7.4
 * PHP FFI extension available
 * Linux > 2.6
+* toknot\php-capi
+
+### Install
+use composer install:
+```
+composer install
+
+```
 
 ## Reference
 
@@ -37,6 +45,8 @@ PHP bindings to the linux epoll API.
 
   set user data variable
 * `EpollEvent::getEvents($idx): FFI\CData`
+
+
 
 ## Simple Example
 

@@ -1,7 +1,6 @@
 <?php
-include dirname(__DIR__) . '/src/Epoll.php';
-
-$epoll = new Epoll();
+use Toknot\Epoll;
+include_once dirname(__DIR__) . '/vendor/autoload.php';
 
 $epoll = new Epoll();
 $fp = fopen(__FILE__, 'rb');

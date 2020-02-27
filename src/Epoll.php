@@ -179,7 +179,7 @@ class Epoll
 
         $api = new PhpApi;
         $stream = $api->phpVar($resource)->ptr;
-        $fd = $stream->abstract;
+        $fd = self::$ffi->cast('php_stream', $stream)->abstract;
         if($type === self::RES_TYPE_FILE) {
             return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
         } elseif($type === self::RES_TYPE_NET) {
