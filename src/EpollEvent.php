@@ -14,6 +14,7 @@ namespace Toknot;
 use Toknot\Epoll;
 use InvalidArgumentException;
 use TypeError;
+use FFI\CData;
 
 class EpollEvent implements \ArrayAccess
 {
@@ -92,7 +93,7 @@ class EpollEvent implements \ArrayAccess
      * @param int $idx
      * @return FFI\CData
      */
-    public function getEvents($idx = null): FFI\CData
+    public function getEvents($idx = null): CData
     {
         if($this->num > 1 && $idx >= 0 && $idx !== null) {
             return $this->events[$idx];

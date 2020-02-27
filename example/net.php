@@ -1,6 +1,5 @@
 <?php
 use Toknot\Epoll;
-use Toknot\EpollEvent;
 include_once dirname(__DIR__) . '/vendor/autoload.php';
 const MAX_EVENTS = 10;
 const EXIT_FAILURE = 1;
