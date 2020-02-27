@@ -10,9 +10,10 @@ PHP bindings to the linux epoll API.
 ### Install
 use composer install:
 ```
-composer install
+composer install toknot/php-epoll
 
 ```
+include composer autoload file : `./vendor/autoload.php`
 
 ## Reference
 
