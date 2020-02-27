@@ -16,6 +16,7 @@ use InvalidArgumentException;
 use ErrorException;
 use TypeError;
 use Toknot\EpollEvent;
+use Toknot\PhpApi;
 
 class Epoll
 {
