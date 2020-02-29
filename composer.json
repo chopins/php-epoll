@@ -26,7 +26,7 @@
     "require": {
         "php": ">=7.4.0",
         "ext-ffi": "*",
-        "toknot/ffi-extend" : ">=0.1"
+        "toknot/ffi-extend" : ">=0.1-alpha1"
     },
     "autoload": {
         "psr-4": {
