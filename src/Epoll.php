@@ -179,7 +179,7 @@ class Epoll
         }
 
         $api = new FFIExtend;
-        $stream = $api->phpVar($resource)->ptr;
+        $stream = $api->zval($resource)->ptr;
         $fd = self::$ffi->cast('php_stream', $stream)->abstract;
         if($type === self::RES_TYPE_FILE) {
             return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
