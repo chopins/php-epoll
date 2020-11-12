@@ -23,6 +23,7 @@ class Epoll
 
     static private $ffi = null;
     private $epfd = 0;
+    static private $phpExt = null;
 
     const EPOLL_CTL_ADD = 1;
     const EPOLL_CTL_MOD = 2;
@@ -62,7 +63,10 @@ class Epoll
     {
         if(self::$ffi === null) {
             include __DIR__ . '/EpollEvent.php';
-            self::$ffi = FFI::cdef(file_get_contents(__DIR__ . '/php.h'));
+            $code = file_get_contents(__DIR__ . '/php.h');
+            self::$phpExt = new FFIExtend;
+            self::$phpExt->replaceMacro('IF_PHP_DEBUG', !PHP_DEBUG, '//', $code);
+            self::$ffi = FFI::cdef($code);
         }
     }
 
@@ -178,8 +182,7 @@ class Epoll
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
 
-        $api = new FFIExtend;
-        $stream = $api->zval($resource)->ptr;
+        $stream = self::$phpExt->zval($resource)->ptr;
         $fd = self::$ffi->cast('php_stream', $stream)->abstract;
         if($type === self::RES_TYPE_FILE) {
             return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;

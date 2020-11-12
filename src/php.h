@@ -179,6 +179,9 @@ struct _php_stream  {
 
     /* how much data to read when filling buffer */
     size_t chunk_size;
+
+    IF_PHP_DEBUG const char *open_filename;uint32_t open_lineno;
+
     struct _php_stream *enclosing_stream; /* this is a private stream owned by enclosing_stream */
 }; /* php_stream */
 
