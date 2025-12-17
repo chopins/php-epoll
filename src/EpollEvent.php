@@ -18,16 +18,12 @@ use FFI\CData;
 
 class EpollEvent implements \ArrayAccess
 {
-
-    /**
-     * @var FFI\CData
-     */
-    private $events = null;
-    private $num = 1;
+    private ?CData $events = null;
+    private int $num = 1;
 
     /**
      * init epoll_event struct
-     * 
+     *
      * @param Epoll $epoll
      * @param int $num      event number
      */
@@ -46,7 +42,7 @@ class EpollEvent implements \ArrayAccess
 
     /**
      * set Epoll events
-     * 
+     *
      * @param int $event
      * @param int $idx
      */
@@ -64,7 +60,7 @@ class EpollEvent implements \ArrayAccess
 
     /**
      * set user data variable
-     * 
+     *
      * @param array $data
      * @param int $idx
      */
@@ -88,12 +84,10 @@ class EpollEvent implements \ArrayAccess
     }
 
     /**
-     * get epoll struct 
-     * 
-     * @param int $idx
-     * @return FFI\CData
+     * get epoll struct
+     *
      */
-    public function getEvents($idx = null): CData
+    public function getEvents(?int $idx = null): CData
     {
         if($this->num > 1 && $idx >= 0 && $idx !== null) {
             return $this->events[$idx];
@@ -106,19 +100,19 @@ class EpollEvent implements \ArrayAccess
         return isset($this->events[$offset]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->events[$offset];
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value):void
     {
-        
+
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
-        
+
     }
 
 }

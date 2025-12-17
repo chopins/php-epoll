@@ -1,6 +1,7 @@
 <?php
 use Toknot\Epoll;
-include_once dirname(__DIR__) . '/vendor/autoload.php';
+include_once dirname(__DIR__) .'/src/Epoll.php';
+include_once dirname(__DIR__) .'/src/EpollEvent.php';
 const MAX_EVENTS = 10;
 const EXIT_FAILURE = 1;
 
@@ -8,8 +9,8 @@ $epoll = new Epoll();
 $ev = $epoll->initEvents();
 $events = $epoll->initEvents(MAX_EVENTS);
 $stream = stream_socket_server("tcp://0.0.0.0:8000", $errno, $errstr);
-$listen_sock = $epoll->getFdno($stream, Epoll::RES_TYPE_NET);
-
+$listen_sock = $epoll->getFdno($stream);
+var_dump($listen_sock);
 function perror($str) {
     fprintf(STDERR, $str);
 }
@@ -40,7 +41,7 @@ for (;;) {
             }
             stream_set_blocking($conn_sock, false);
             $ev->setEvent(Epoll::EPOLLIN | Epoll::EPOLLET);
-            $connFdno = $epoll->getFdno($conn_sock, Epoll::RES_TYPE_NET);
+            $connFdno = $epoll->getFdno($conn_sock);
             $ev->setData(['fd' => $connFdno]);
             if ($epoll->ctl(Epoll::EPOLL_CTL_ADD, $connFdno,
                         $ev) == -1) {
@@ -48,7 +49,7 @@ for (;;) {
                 exit(EXIT_FAILURE);
             }
         } else {
-            do_use_fd($events[$n]->data->fd);
+            var_dump($events[$n]->data->fd);
         }
     }
 }

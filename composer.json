@@ -10,7 +10,7 @@
     ],
     "homepage": "http://toknot.com",
     "license": "BSD-3-Clause",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "authors": [
         {
             "name": "Szopen Xiao",
@@ -25,8 +25,7 @@
     },
     "require": {
         "php": ">=7.4.0",
-        "ext-ffi": "*",
-        "toknot/ffi-extend" : ">=0.1.5"
+        "ext-ffi": "*"
     },
     "autoload": {
         "psr-4": {

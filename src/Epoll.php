@@ -16,14 +16,12 @@ use InvalidArgumentException;
 use ErrorException;
 use TypeError;
 use Toknot\EpollEvent;
-use Toknot\FFIExtend;
 
 class Epoll
 {
 
     static private $ffi = null;
     private $epfd = 0;
-    static private $phpExt = null;
 
     const EPOLL_CTL_ADD = 1;
     const EPOLL_CTL_MOD = 2;
@@ -59,13 +57,24 @@ class Epoll
     const RES_TYPE_FILE = 1;
     const RES_TYPE_NET = 2;
 
+    const SYMTABLE_CACHE_SIZE = 32;
+    const ZEND_ARRAY_SIZE = 48 + \PHP_INT_SIZE;
+    const ZVAL_SIZE = 16;
+
     public function __construct()
     {
-        if(self::$ffi === null) {
-            include __DIR__ . '/EpollEvent.php';
-            $code = file_get_contents(__DIR__ . '/php.h');
-            self::$phpExt = new FFIExtend;
-            self::$phpExt->replaceMacro('IF_PHP_DEBUG', !PHP_DEBUG, '//', $code);
+        if (self::$ffi === null) {
+            $code = \file_get_contents(__DIR__ . '/php.h');
+            $code = \str_replace(
+                ['__SYMTABLE_CACHE_SIZE__', '__ZEND_ARRAY_SIZE__', 'zend_long'],
+                [self::SYMTABLE_CACHE_SIZE, self::ZEND_ARRAY_SIZE, \PHP_INT_SIZE == 8 ? 'int64_t' : 'int32_t'],
+                $code
+            );
+            if(\PHP_ZTS) {
+                $code .= 'void *tsrm_get_ls_cache(void);size_t executor_globals_offset;';
+            } else {
+                $code .= 'zend_executor_globals executor_globals;';
+            }
             self::$ffi = FFI::cdef($code);
         }
     }
@@ -77,14 +86,14 @@ class Epoll
      */
     public function create(int $flags)
     {
-        if($flags === 0 || $flags === self::EPOLL_CLOEXEC) {
+        if ($flags === 0 || $flags === self::EPOLL_CLOEXEC) {
             $this->epfd = self::$ffi->epoll_create1($flags);
-        } else if($flags > 0) {
+        } else if ($flags > 0) {
             $this->epfd = self::$ffi->epoll_create($flags);
         } else {
             throw new InvalidArgumentException('Epoll::create() of paramter 1 must be greater than 0');
         }
-        if($this->epfd < 0) {
+        if ($this->epfd < 0) {
             throw new ErrorException('create epoll file descriptor error');
         }
     }
@@ -127,7 +136,7 @@ class Epoll
      */
     public function initEvents(int $num = 1): EpollEvent
     {
-        if($num < 1) {
+        if ($num < 1) {
             throw new InvalidArgumentException('Epoll::initEvents() of paramter 1 must be greater than 0');
         }
         return new EpollEvent($this, $num);
@@ -157,10 +166,10 @@ class Epoll
      */
     public function wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int
     {
-        if($maxevents <= 0) {
+        if ($maxevents <= 0) {
             throw new InvalidArgumentException('Epoll::wait() of paramter 2 must be greater than 0');
         }
-        if($sigmask === null) {
+        if ($sigmask === null) {
             return self::$ffi->epoll_wait($this->epfd, $event->getEvents(), $maxevents, $timeout);
         } else {
             return self::$ffi->epoll_pwait($this->epfd, $event->getEvents(), $maxevents, $timeout, $sigmask);
@@ -170,27 +179,35 @@ class Epoll
     /**
      * get id from file descriptor of php resource
      *
-     * @param mix $resource  php resource
-     * @param int $type     resource type, 
-     *                     value is Epoll::RES_TYPE_FILE: open file resource, like fopen,STDOUT
-     *                       Epoll::RES_TYPE_NET: open network resource, like stream_socket_server
+     * @param mixed $resource  php resource
      * @return int         if error return -1, otherwise return greater then 0
      */
-    public function getFdno($resource, $type): int
+    public function getFdno($resource): int
     {
-        if(!is_resource($resource)) {
+        if (!is_resource($resource)) {
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
-
-        $stream = self::$phpExt->zval($resource)->ptr;
-        $fd = self::$ffi->cast('php_stream', $stream)->abstract;
-        if($type === self::RES_TYPE_FILE) {
-            return self::$ffi->cast('php_stdio_stream_data', $fd)->fd;
-        } elseif($type === self::RES_TYPE_NET) {
-            return self::$ffi->cast('php_netstream_data_t', $fd)->socket;
+        if(\PHP_ZTS) {
+            $tsrm = self::$ffi->cast('char*', self::$ffi->tsrm_get_ls_cache());
+            $cex = self::$ffi->cast('zend_executor_globals*', $tsrm + self::$ffi->executor_globals_offset)->current_execute_data;
         } else {
-            return -1;
+            $cex = self::$ffi->executor_globals->current_execute_data;
         }
+        $ex = self::$ffi->cast('zval*', $cex);
+        $zvalSize = FFI::sizeof(self::$ffi->type('zval'));
+        $exSize = FFI::sizeof(self::$ffi->type('zend_execute_data'));
+        $arg = $ex + (($exSize + $zvalSize - 1) / $zvalSize);
+        $stream = self::$ffi->cast('php_stream', $arg->res->ptr);
+        $meta =  \stream_get_meta_data($resource);
+        if($meta['stream_type'] == 'STDIO' && $meta['wrapper_type'] == 'plainfile') {
+            $io = self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
+            return $io->fd;
+        } elseif(strpos($meta['stream_type'],'tcp_socket') === 0) {
+            $sock = self::$ffi->cast('php_netstream_data', $stream->abstract);
+            return $sock->php_sock;
+        } else {
+            throw new \RuntimeException('unsupport stream type');
+        }
+        return -1;
     }
-
 }
