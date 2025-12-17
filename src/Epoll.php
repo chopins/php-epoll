@@ -205,8 +205,6 @@ class Epoll
         } elseif(strpos($meta['stream_type'],'tcp_socket') === 0) {
             $sock = self::$ffi->cast('php_netstream_data', $stream->abstract);
             return $sock->php_sock;
-        } else {
-            throw new \RuntimeException('unsupport stream type');
         }
         return -1;
     }
