@@ -27,9 +27,9 @@ include composer autoload file : `./vendor/autoload.php`
 * `Epoll::wait(EpollEvent $event, int $maxevents, int $timeout, $sigmask = null): int`
 
   wait for an I/O event on an epoll file descriptor
-* `Epoll::getFdno(resource $file, int $type): int`
+* `Epoll::getFdno(resource $file): int`
 
-  get id from file descriptor of php resource
+  get id from file descriptor of php resource (support file and php net socket)
 * `Epoll::lastErrno(): int`
 
   get last error code
