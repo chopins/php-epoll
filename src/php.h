@@ -67,7 +67,8 @@ typedef struct
 
 	void *current_execute_data;
 	void *fake_scope;
-	/* other memeber .... */
+	/* Other member fields are omitted .... */
+	/* ....... */
 } zend_executor_globals;
 
 typedef struct _php_stream  {
