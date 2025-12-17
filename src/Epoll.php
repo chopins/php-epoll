@@ -66,11 +66,16 @@ class Epoll
         if (self::$ffi === null) {
             $code = \file_get_contents(__DIR__ . '/php.h');
             $code = \str_replace(
-                ['__SYMTABLE_CACHE_SIZE__', '__ZEND_ARRAY_SIZE__', 'zend_long'],
-                [self::SYMTABLE_CACHE_SIZE, self::ZEND_ARRAY_SIZE, \PHP_INT_SIZE == 8 ? 'int64_t' : 'int32_t'],
+                ['__SYMTABLE_CACHE_SIZE__', '__ZEND_ARRAY_SIZE__', 'zend_long', '__PHP85_EG_FEILDS__'],
+                [
+                    self::SYMTABLE_CACHE_SIZE,
+                    self::ZEND_ARRAY_SIZE,
+                    \PHP_INT_SIZE == 8 ? 'int64_t' : 'int32_t',
+                    \PHP_VERSION_ID >= 80500 ? 'bool fatal_error_backtrace_on;zval last_fatal_error_backtrace;':'',
+                ],
                 $code
             );
-            if(\PHP_ZTS) {
+            if (\PHP_ZTS) {
                 $code .= 'void *tsrm_get_ls_cache(void);size_t executor_globals_offset;';
             } else {
                 $code .= 'zend_executor_globals executor_globals;';
@@ -187,7 +192,7 @@ class Epoll
         if (!is_resource($resource)) {
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
-        if(\PHP_ZTS) {
+        if (\PHP_ZTS) {
             $tsrm = self::$ffi->cast('char*', self::$ffi->tsrm_get_ls_cache());
             $cex = self::$ffi->cast('zend_executor_globals*', $tsrm + self::$ffi->executor_globals_offset)->current_execute_data;
         } else {
@@ -199,10 +204,10 @@ class Epoll
         $arg = $ex + (($exSize + $zvalSize - 1) / $zvalSize);
         $stream = self::$ffi->cast('php_stream', $arg->res->ptr);
         $meta =  \stream_get_meta_data($resource);
-        if($meta['stream_type'] == 'STDIO' && $meta['wrapper_type'] == 'plainfile') {
+        if ($meta['stream_type'] == 'STDIO' && $meta['wrapper_type'] == 'plainfile') {
             $io = self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
             return $io->fd;
-        } elseif(strpos($meta['stream_type'],'tcp_socket') === 0) {
+        } elseif (strpos($meta['stream_type'], 'tcp_socket') === 0) {
             $sock = self::$ffi->cast('php_netstream_data', $stream->abstract);
             return $sock->php_sock;
         }

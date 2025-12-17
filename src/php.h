@@ -54,6 +54,7 @@ typedef struct
 	char included_files[__ZEND_ARRAY_SIZE__];//zend_array
 	void *bailout; // JMP_BUF
 	int error_reporting;
+	__PHP85_EG_FEILDS__
 	int exit_status;
 
 	void *function_table; //zend_array
