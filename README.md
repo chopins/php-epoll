@@ -5,7 +5,6 @@ PHP bindings to the linux epoll API.
 * PHP >= 7.4
 * PHP FFI extension available
 * Linux > 2.6
-* toknot/ffi-extend>=0.1
 
 ### Install
 use composer install:
