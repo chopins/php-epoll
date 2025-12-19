@@ -1,3 +1,14 @@
+/* This macro definition has no actual functionality and is used solely to suppress IDE warnings or error messages. */
+#define uint32_t unsigned int
+#define uint64_t unsigned long
+#define zend_long long long
+#define __SYMTABLE_CACHE_SIZE__ 32
+#define __ZEND_ARRAY_SIZE__ 64
+#define __PHP85_EG_FEILDS__
+#define size_t int
+/* --- END ---*/
+
+
 typedef struct _IO_FILE FILE;
 typedef unsigned long sigset_t;
 
