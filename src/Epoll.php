@@ -207,7 +207,7 @@ class Epoll
         if ($meta['stream_type'] == 'STDIO' && $meta['wrapper_type'] == 'plainfile') {
             $io = self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
             return $io->fd;
-        } elseif (strpos($meta['stream_type'], 'tcp_socket') === 0) {
+        } elseif ($meta['stream_type'] == 'generic_socket' || strpos($meta['stream_type'], 'tcp_socket') === 0) {
             $sock = self::$ffi->cast('php_netstream_data', $stream->abstract);
             return $sock->php_sock;
         }
