@@ -64,22 +64,24 @@ class Epoll
     public function __construct()
     {
         if (self::$ffi === null) {
-            $code = \file_get_contents(__DIR__ . '/php.h');
-            $code = \str_replace(
-                ['__SYMTABLE_CACHE_SIZE__', '__ZEND_ARRAY_SIZE__', 'zend_long', '__PHP85_EG_FEILDS__'],
-                [
-                    self::SYMTABLE_CACHE_SIZE,
-                    self::ZEND_ARRAY_SIZE,
-                    \PHP_INT_SIZE == 8 ? 'int64_t' : 'int32_t',
-                    \PHP_VERSION_ID >= 80500 ? 'bool fatal_error_backtrace_on;zval last_fatal_error_backtrace;':'',
-                ],
-                $code
-            );
-            if (\PHP_ZTS) {
-                $code .= 'void *tsrm_get_ls_cache(void);size_t executor_globals_offset;';
-            } else {
-                $code .= 'zend_executor_globals executor_globals;';
-            }
+            $zend_long = \PHP_INT_SIZE == 8 ? 'int64_t' : 'int32_t';
+            $code = <<<C
+            typedef union epoll_data{void *ptr;int fd;uint32_t u32;uint64_t u64;} epoll_data_t;
+            typedef struct epoll_event{uint32_t events;epoll_data_t data;} epoll_event;
+            int epoll_create(int size);
+            int epoll_create1(int __flags);
+            int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+            int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+            int epoll_pwait(int epfd, struct epoll_event *events, int maxevents, int timeout, const unsigned long *sigmask);
+            int errno;
+            char *strerror(int errno);
+            typedef struct{void *res;uint32_t type_info;uint32_t num_args;} zval;
+            int zend_eval_string(const char *str, zval *retval_ptr, const char *string_name);
+            typedef struct _zend_resource {uint32_t gc[2];$zend_long handle;int type;void *ptr;} zend_resource;
+            typedef struct _php_stream  {const void *ops;void *abstract;} php_stream;
+            typedef struct {void *file;int fd;} php_stdio_stream_data;
+            typedef struct {int php_sock;} php_netstream_data;
+            C;
             self::$ffi = FFI::cdef($code);
         }
     }
@@ -185,24 +187,17 @@ class Epoll
      * get id from file descriptor of php resource
      *
      * @param mixed $resource  php resource
-     * @return int         if error return -1, otherwise return greater then 0
+     * @return int  if error return -1, otherwise return greater then 0
      */
-    public function getFdno($resource): int
+    function getFdno($resource)
     {
-        if (!is_resource($resource)) {
+        if(!is_resource($resource)) {
             throw new TypeError('Epoll::getFdno() of paramter 1 must be resource');
         }
-        if (\PHP_ZTS) {
-            $tsrm = self::$ffi->cast('char*', self::$ffi->tsrm_get_ls_cache());
-            $cex = self::$ffi->cast('zend_executor_globals*', $tsrm + self::$ffi->executor_globals_offset)->current_execute_data;
-        } else {
-            $cex = self::$ffi->executor_globals->current_execute_data;
-        }
-        $ex = self::$ffi->cast('zval*', $cex);
-        $zvalSize = FFI::sizeof(self::$ffi->type('zval'));
-        $exSize = FFI::sizeof(self::$ffi->type('zend_execute_data'));
-        $arg = $ex + (($exSize + $zvalSize - 1) / $zvalSize);
-        $stream = self::$ffi->cast('php_stream', $arg->res->ptr);
+        $zval = self::$ffi->new('zval', false);
+        self::$ffi->zend_eval_string('$resource;', FFI::addr($zval), __FILE__);
+        $res = self::$ffi->cast('zend_resource', $zval->res);
+        $stream = self::$ffi->cast('php_stream', $res->ptr);
         $meta =  \stream_get_meta_data($resource);
         if ($meta['stream_type'] == 'STDIO') {
             $io = self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
