@@ -204,7 +204,7 @@ class Epoll
         $arg = $ex + (($exSize + $zvalSize - 1) / $zvalSize);
         $stream = self::$ffi->cast('php_stream', $arg->res->ptr);
         $meta =  \stream_get_meta_data($resource);
-        if ($meta['stream_type'] == 'STDIO' && $meta['wrapper_type'] == 'plainfile') {
+        if ($meta['stream_type'] == 'STDIO') {
             $io = self::$ffi->cast('php_stdio_stream_data', $stream->abstract);
             return $io->fd;
         } elseif ($meta['stream_type'] == 'generic_socket' || strpos($meta['stream_type'], 'tcp_socket') === 0) {
